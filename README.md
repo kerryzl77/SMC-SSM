@@ -3,7 +3,7 @@
 This repository contains the research paper "Sequential Monte Carlo Methods.pdf" and the accompanying R code appendix for implementing Kalman Filtering (KF) and Particle Filtering (PF) techniques.
 
 **Paper Link:**
-* [Sequential Monte Carlo Methods.pdf](https://link-to-your-pdf)
+* [Sequential Monte Carlo Methods.pdf](https://github.com/kerryzl77/SMC-SSM/blob/main/Sequential%20Monte%20Carlo%20Methods.pdf)
 
 **Code Appendix**
 
