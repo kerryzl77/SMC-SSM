@@ -12,13 +12,11 @@ The `KF_PF_in_R` folder contains R code implementations.
 * **Usage:**
     * `KF_simulation.R`
     * `PF_estimation.R`
-    * ... (List other relevant scripts)
 
 * **Dependencies:**
     * R (version 3.6 or above)
     * ggplot2
     * dplyr
-    * ... (List other required packages)
 
 
 **Contributions**
