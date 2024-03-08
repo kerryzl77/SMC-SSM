@@ -5,33 +5,35 @@ library(readxl)
 library(dplyr)
 
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
-data_path <- "../data/combined_Data.csv"
+data_path <- "../data/combined_Data_imm.csv"
 Combined_Data <- read.csv(data_path)
-Combined_Data <- Combined_Data[,-1] # Remove Index
 
-################################################################################################################
+## <--------------------------------------------------------------------------->
+## Kalman Filter: Univariate SSMs for Population Growth
+## <--------------------------------------------------------------------------->
+## Transition equation:
+## alpha[t+1] = Growth rate * alpha[t] + immigration[t], eta[t] ~ N(0, HHt)          
+## Measurement equation:
+## y[t] = alpha[t] + eps[t], eps[t] ~  N(0, GGt)
+
 # Define the parameters (phi, beta)
 phi <- mean(1 - (Combined_Data$Death_Count / Combined_Data$Population))
 beta <- mean(Combined_Data$Birth_Count / Combined_Data$Population)
 
-# Initial state
-N_initial <- Combined_Data$Population[!is.na(Combined_Data$Population)][1]
-
-# Initialize vectors
 years <- Combined_Data$Year
 
-# Constant Factor 1x1 matrix in measurement equation
+# Constant factor of 1 in measurement equation
 Zt <- matrix(1, nrow = 1, ncol = 1)
 
-# Initial state and covariance matrix
-a0 <- as.double(N_initial) # Initial state
+# Initial state and variance
+a0 <- as.double(Combined_Data$Population[!is.na(Combined_Data$Population)][1]) # Initial state
 P0 <- matrix(1000) # Initial variance
 
-# Define the state transition matrix (Tt)
-Tt <- matrix(phi + beta, nrow = 1, ncol = 1) # 1x1 Transition matrix
+# Constant factor of state transition matrix
+Tt <- matrix(phi + beta, nrow = 1, ncol = 1) 
 
-# Observation noise (Set as 3% relative standard error of the previous year's population)
-GGt_Default <- matrix(0.03 * Combined_Data$Population[length(Combined_Data$Population) - 1], nrow = 1, ncol = 1)
+# Observation noise (Set as 3% of the mean population count)
+GGt_Default <- matrix(mean(0.03 * Combined_Data$Population), nrow = 1, ncol = 1)
 
 ########################
 # Observed population
@@ -39,18 +41,22 @@ y <- Combined_Data$Population
 yt <- rbind(y)
 yt[is.na(yt)] <- 0 # Replace NA with 0 for Kalman filtering
 
-dt <- ct <- matrix(0) # intercepts of the transition and measurement equations
+dt <- matrix(as.double(Combined_Data$Immigration_Count),nrow = 1)
+ct <- matrix(0) # intercepts of the transition and measurement equations
 
 # Process noise
 # Approximate with the variance of the yearly differences in population
 yearly_differences <- diff(na.omit(Combined_Data$Population))
-process_noise_estimate <- sqrt(var(yearly_differences))
+process_noise_estimate <- (var(yearly_differences))
 HHt_Default <- matrix(process_noise_estimate)
 
 ################################################################################################################
 # Fit Kalman Filter and Plot
 run_kalman_and_plot <- function(a0, P0, dt, ct, Tt, Zt, HHt, GGt, yt, years, data, plot_title) {
   kf <- fkf(a0 = a0, P0 = P0, dt = dt, ct = ct, Tt = Tt, Zt = Zt, HHt = HHt, GGt = GGt, yt = yt)
+  
+  log_likelihood <- kf$logLik
+  print(paste("Log-likelihood:", log_likelihood)) 
 
   # Extract the filtered state estimates
   filtered_estimates <- as.numeric(kf$att)
