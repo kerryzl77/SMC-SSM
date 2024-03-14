@@ -7,14 +7,13 @@ setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 data_path <- "../data/combined_Data_imm.csv"
 data <- read.csv(data_path)
 
-bayesian_particle_filter_adjusted <- function(data, num_particles = 10000, birth_rate_prior = c(0, 0.1), death_rate_prior = c(0, 0.1), thresh = 0.9) {
-  # Initialize particles
-  birth_rate_particles  <- rnorm(num_particles, birth_rate_prior[1], birth_rate_prior[2])  
-  death_rate_particles <- rnorm(num_particles, death_rate_prior[1], death_rate_prior[2])
+sdp <- sqrt(1.6e11) # process error set to the optimization result for kalman filter
+
+bayesian_particle_filter_adjusted <- function(data, num_particles = 10000, birth_rate_prior = c(0, 0.1), death_rate_prior = c(0, 0.1), thresh = 0.8) {
   
-  # Ensure particles between (0,1)
-  birth_rate_particles <- pmin(pmax(birth_rate_particles, 0), 1)
-  death_rate_particles <- pmin(pmax(death_rate_particles, 0), 1)
+  # Initialize particles
+  birth_rate_particles  <- runif(num_particles, birth_rate_prior[1], birth_rate_prior[2])  
+  death_rate_particles <- runif(num_particles, death_rate_prior[1], death_rate_prior[2])
   
   weights <- rep(1/num_particles, num_particles)
   
@@ -23,6 +22,8 @@ bayesian_particle_filter_adjusted <- function(data, num_particles = 10000, birth
   for (year in 2:nrow(data)) {
     prev_population <- data[year - 1, 'Population']
     observed_population <- data[year, 'Population']
+    
+    sdo <- sqrt(0.03 * prev_population) # Standard Deviation of Observation each Year
 
     # Simulate process model with changes:
     died <- rbinom(num_particles, prev_population, death_rate_particles)  # Binomial death
@@ -30,11 +31,12 @@ bayesian_particle_filter_adjusted <- function(data, num_particles = 10000, birth
     births <- rpois(num_particles, lambda = survived * birth_rate_particles) # Poisson birth
     estimated_population <- survived + births + data[year, "Immigration_Count"] 
     
-    # Add normal variation for observation error
-    estimated_population <- estimated_population + rnorm(num_particles, 0, prev_population * 0.01)
+    # Add normal variation for process error
+    estimated_population <- estimated_population + rnorm(num_particles, 0, sdp)
     
     # Update weights
-    weights <- weights * dpois(observed_population, estimated_population)
+    weights <- weights * dlnorm(observed_population, meanlog = log(estimated_population), sdlog = log((sdo)), log = FALSE)
+
     weights <- weights + 1e-300
     weights <- weights / sum(weights)
     
@@ -84,6 +86,18 @@ ggplot(adjusted_bayesian_estimated_population_df, aes(x = Year)) +
   ggtitle('Particle Filtering Hard-Coded') +
   scale_color_manual(values = c('Actual Population' = 'blue', 'Estimated Population' = 'red')) +
   theme_minimal()
+
+ggplot(adjusted_bayesian_estimated_population_df, aes(x = Year)) +
+  geom_line(aes(y = Estimated_Death_Rate, color = "Estimated Death Rate")) +
+  geom_line(aes(y = Estimated_birth_Rate, color = "Estimated Birth Rate")) +
+  xlab('Year') +
+  ylab('Rate %') +
+  ggtitle('Estimated Birth & Death Rate') +
+  scale_color_manual(values = c('Estimated Death Rate' = 'blue', 'Estimated Birth Rate' = 'red')) +
+  theme_minimal()
+  
+plot(adjusted_bayesian_estimated_population_df$Estimated_birth_Rate, main = 'Estimated Birth Rate', ylab = 'Birth Rate %', xlab = 'Year', type = "l")
+plot(adjusted_bayesian_estimated_population_df$Estimated_Death_Rate, main = 'Estimated Death Rate', ylab = 'Death Rate %', xlab = 'Year', type = "l")
 
 ggplot(adjusted_bayesian_estimated_population_df, aes(x = Year, y = ESS)) +
   geom_line() + 

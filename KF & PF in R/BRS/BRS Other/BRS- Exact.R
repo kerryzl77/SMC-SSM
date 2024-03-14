@@ -7,6 +7,7 @@ library(coda)
 
 
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+setwd("..")
 data_path <- "../data/combined_Data.csv"
 Combined_Data <- read.csv(data_path)
 Combined_Data <- Combined_Data[,-1]
@@ -69,7 +70,7 @@ compiledFilter$run(parNum)
 # Extract equally weighted posterior samples of state variables
 posteriorSamples <- as.matrix(compiledFilter$mvEWSamples)
 
-# hist(posteriorSamples)
+# hist(posteriorSamples) # Final year population posterior 
 # unique(posteriorSamples)
 
 # Generate time series estimates of the population dynamic
