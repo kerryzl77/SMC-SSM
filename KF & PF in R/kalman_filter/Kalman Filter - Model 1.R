@@ -48,7 +48,9 @@ ct <- matrix(0) # intercepts of the transition and measurement equations
 # Approximate with the variance of the yearly differences in population
 yearly_differences <- diff(na.omit(Combined_Data$Population))
 process_noise_estimate <- (var(yearly_differences))
+process_noise_squared <- (sqrt(var(yearly_differences)))
 HHt_Default <- matrix(process_noise_estimate)
+HHt_squared <- matrix(process_noise_squared)
 
 ################################################################################################################
 # Fit Kalman Filter and Plot
@@ -99,6 +101,7 @@ optimized_HHt <- optimize_kalman_params(yt, Tt, Zt, a0, P0, dt, ct, HHt_Default,
 
 run_kalman_and_plot(a0, P0, dt, ct, Tt, Zt, HHt_Default, GGt_Default, yt, years, Combined_Data, 'Default process noise')
 run_kalman_and_plot(a0, P0, dt, ct, Tt, Zt, optimized_HHt, GGt_Default, yt, years, Combined_Data, 'Optimized process noise')
+run_kalman_and_plot(a0, P0, dt, ct, Tt, Zt, HHt_squared, GGt_Default, yt, years, Combined_Data, 'Squared process noise')
 
 
 

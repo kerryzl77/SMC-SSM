@@ -5,7 +5,6 @@ library(readxl)
 folder_path <- file.path(dirname(rstudioapi::getSourceEditorContext()$path), "/data/Data - England & Wales")
 setwd(folder_path)
 
-
 # Read birth data
 Birth_Data <- read.csv('Births Count 1838-2022.csv', skip = 7) %>%
   select(Year = 1, Birth_Count = 2) %>%
@@ -45,9 +44,34 @@ Combined_Data$Death_rate <- round(Combined_Data$Death_Count / Combined_Data$Popu
 head(Combined_Data)
 
 ################################################################################################################
-# Plotting Birth and Death counts on the same graph
+# Reproduce Figure 1 
 ggplot(data = Combined_Data, aes(x = Year)) +
-  geom_line(aes(y = Birth_Count, color = "Births")) +
-  geom_line(aes(y = Death_Count, color = "Deaths")) +
+  geom_line(aes(y = Birth_Count, color = "Births")) +  
+  geom_line(aes(y = Death_Count, color = "Deaths")) +  
   labs(x = "Year", y = "Count", color = "Event Type") +
+  scale_color_manual(values = c(Births = 'red', Deaths = 'blue')) +  
+  ggtitle('Birth and Death Count 1838-2021') +
   theme_minimal()
+
+# Reproduce Figure 2
+ggplot(data = Combined_Data, aes(x = Year)) +
+  geom_line(aes(y = Birth_rate, color = "Births")) +  
+  geom_line(aes(y = Death_rate, color = "Deaths")) +  
+  labs(x = "Year", y = "Rate %", color = "Event Type") +
+  scale_color_manual(values = c(Births = 'red', Deaths = 'blue')) +  
+  ggtitle('Birth and Death Rate 1838-2021') +
+  theme_minimal()
+
+# Reproduce Figure 3
+actual_growth <- c(NA, diff(Combined_Data$Population)) # YOY actual population change
+expected_growth <- Combined_Data$Birth_Count - Combined_Data$Death_Count
+immigrant_gap <- actual_growth - expected_growth # Gap (actual - expected)
+Population_Growth_Data <- data.frame(
+  Year = Combined_Data$Year,
+  Expected_Growth = expected_growth,
+  Actual_Growth = actual_growth,
+  Immigrant_Gap = immigrant_gap
+)
+Population_Growth_Data <- Population_Growth_Data[-1, ]
+plot(Population_Growth_Data$Year, Population_Growth_Data$Immigrant_Gap, type = "l", main = "Yearly Immigration Gap", xlab = "Year", ylab = "Immigration Gap")
+

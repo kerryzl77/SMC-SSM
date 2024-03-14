@@ -59,7 +59,7 @@ compiledModel <- compileNimble(stateSpaceModel)
 
 # build bootstrap filter for state estimation
 bootstrapFilter <- buildBootstrapFilter(stateSpaceModel, nodes = "S",
-                                        control = list(saveAll = TRUE, thresh = 0.7))
+                                        control = list(saveAll = TRUE, thresh = 0.8))
 compiledFilter <- compileNimble(bootstrapFilter)
 
 # Number of particles deafault 10000
