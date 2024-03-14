@@ -23,6 +23,3 @@ The `KF_PF_in_R` folder contains R code implementations.
 
 This project is open to contributions and improvements. Feel free to suggest changes or additions.
 
-**License**
-
-This code is licensed under the MIT License. 
