@@ -7,11 +7,11 @@ This repository contains the research paper "Sequential Monte Carlo Methods.pdf"
 
 **Code Appendix**
 
-The `KF_PF_in_R` folder contains R code implementations.
+The `KF & PF in R` folder contains R code implementations.
 
 * **Usage:**
-    * `KF_simulation.R`
-    * `PF_estimation.R`
+    * `kalman_filter`
+    * `particle_filter`
 
 * **Dependencies:**
     * R (version 3.6 or above)
