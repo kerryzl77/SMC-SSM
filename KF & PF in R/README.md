@@ -23,7 +23,7 @@ The `particle_filter` subfolder includes scripts for various particle filter mod
 #### Within NimbleSMC Folder
 Nested inside `particle_filter`, the `NimbleSMC` folder contains scripts that utilize the NimbleSMC package for advanced SMC models:
 
-- **SMC - Bin.R** (Model 2 - Binomial-Binomial case): Simulates survival and birth events using binomial processes.
+- **SMC - Bin.R**: Simulates survival and birth events using binomial processes.
 
 - **SMC bin dynamic rate.R**: Showcases a dynamic birth and death rate model, highlighting issues with compilation due to stochasticity.
 
