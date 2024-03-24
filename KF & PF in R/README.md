@@ -2,17 +2,27 @@
 This repository hosts a suite of R scripts designed to model population dynamics using state-space models and Sequential Monte Carlo (SMC) methods. Each script is tailored to specific model formulations and assumptions as detailed in the corresponding research paper. The scripts employ various probabilistic models to estimate and analyze the population states based on birth, death, and migration data.
 
 ## Model Implementations
+### KF & PF in R
+This main folder contains two subfolders for organizing the scripts related to Kalman Filters (KF) and Particle Filters (PF)
+
+#### Kalman Filter
+
 - **Kalman Filter - Model 1.R: This script fits a linear Gaussian state-space model to population data using a Kalman filter. It initializes with a 'diffuse' covariance matrix and optimizes the process and observation noise parameters.
 
 - **optimizeKalmanParams.R: Provides the optimization routine for the Kalman Filter's noise parameters using the BFGS algorithm.
 
-- **SMC - PoisLogN.R (Model 2 - Poisson-Lognormal case): Implements a particle filter with a Poisson process for births and a log-normal observation model, reflecting the stochastic nature of population changes.
+#### Particle Filtering
 
-- **SMC - Bin.R (Model 2 - Binomial-Binomial case): A variant of the particle filter that uses binomial processes to simulate both survival and birth events in the population.
+- **SMC - PoisLogN.R (Model 2 - Poisson-Lognormal case): Implements a particle filter with a Poisson process for births and a log-normal observation model, reflecting the stochastic nature of population changes.
 
 - **BF-Coded.R (Model 3): Corresponds to a hard-coded Bootstrap Filter implementation for a non-linear state-space model.
 
+##### Nimble SMC
+- **SMC - Bin.R (Model 2 - Binomial-Binomial case): A variant of the particle filter that uses binomial processes to simulate both survival and birth events in the population.
 - **SMC bin dynamic rate.R: Demonstrates a dynamic birth and death rate model which could not be compiled due to excessive stochasticity.
+- **SMC-Normal-phi/beta.R: Sets up a vague prior and a normal model.
+- **SMC-Normal - sdo/sdp.R: Uses exact birth and death data but estimates dynamic process and observation error.
+- **SMC-Normal-Exact.R: Uses exact birth and death data and a process equation identical to the Kalman filter model.
 
 ## Data Sources and Methods
 ###Population Data
