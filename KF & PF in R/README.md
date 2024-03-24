@@ -16,7 +16,7 @@ Located within the `kalman_filter` folder, the following scripts apply Kalman fi
 ### Particle Filter Scripts
 The `particle_filter` subfolder includes scripts for various particle filter models:
 
-- **SMC - PoisLogN.R** (Model 2 - Poisson-Lognormal case): Implements a particle filter with a Poisson process for births and a log-normal observation model.
+- **SMC - PoisLogN.R** (Model 2 - Poisson-Lognormal): Implements a particle filter with a Poisson process for births and a log-normal observation model.
 
 - **BF-Coded.R** (Model 3): Implements a hard-coded Bootstrap Filter for a non-linear state-space model.
 
