@@ -1,4 +1,4 @@
-# Project README
+# R Repository
 
 This repository contains a collection of R scripts for modeling population dynamics through state-space models and Sequential Monte Carlo (SMC) methods. Tailored to specific model formulations detailed the paper, these scripts utilize various probabilistic models to estimate and analyze population states influenced by birth, death, and migration data.
 
