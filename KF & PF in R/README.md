@@ -1,35 +1,42 @@
-# Project README
-This repository hosts a suite of R scripts designed to model population dynamics using state-space models and Sequential Monte Carlo (SMC) methods. Each script is tailored to specific model formulations and assumptions as detailed in the corresponding research paper. The scripts employ various probabilistic models to estimate and analyze the population states based on birth, death, and migration data.
+# Population Dynamics Modeling using State-Space Models and SMC Methods
 
-## Model Implementations
-### KF & PF in R
-This main folder contains two subfolders for organizing the scripts related to Kalman Filters (KF) and Particle Filters (PF)
+This repository contains a collection of R scripts for modeling population dynamics through state-space models and Sequential Monte Carlo (SMC) methods. Tailored to specific model formulations detailed the paper, these scripts utilize various probabilistic models to estimate and analyze population states influenced by birth, death, and migration data.
 
-#### Kalman Filter
+## Directory Structure
 
-- **Kalman Filter - Model 1.R: This script fits a linear Gaussian state-space model to population data using a Kalman filter. It initializes with a 'diffuse' covariance matrix and optimizes the process and observation noise parameters.
+The main directory, `KF & PF in R`, is divided into two subdirectories for organizing scripts related to Kalman Filters (`KF`) and Particle Filters (`PF`), each containing further subdivisions as follows:
 
-- **optimizeKalmanParams.R: Provides the optimization routine for the Kalman Filter's noise parameters using the BFGS algorithm.
+### Kalman Filter Scripts
+Located within the `kalman_filter` folder, the following scripts apply Kalman filter techniques:
 
-#### Particle Filtering
+- **Kalman Filter - Model 1.R**: Fits a linear Gaussian state-space model to population data using the Kalman filter, starting with a 'diffuse' covariance matrix and optimizing noise parameters.
 
-- **SMC - PoisLogN.R (Model 2 - Poisson-Lognormal case): Implements a particle filter with a Poisson process for births and a log-normal observation model, reflecting the stochastic nature of population changes.
+- **optimizeKalmanParams.R**: Optimizes the Kalman Filter's noise parameters using the BFGS algorithm.
 
-- **BF-Coded.R (Model 3): Corresponds to a hard-coded Bootstrap Filter implementation for a non-linear state-space model.
+### Particle Filter Scripts
+The `particle_filter` subfolder includes scripts for various particle filter models:
 
-##### Nimble SMC
-- **SMC - Bin.R (Model 2 - Binomial-Binomial case): A variant of the particle filter that uses binomial processes to simulate both survival and birth events in the population.
-- **SMC bin dynamic rate.R: Demonstrates a dynamic birth and death rate model which could not be compiled due to excessive stochasticity.
-- **SMC-Normal-phi/beta.R: Sets up a vague prior and a normal model.
-- **SMC-Normal - sdo/sdp.R: Uses exact birth and death data but estimates dynamic process and observation error.
-- **SMC-Normal-Exact.R: Uses exact birth and death data and a process equation identical to the Kalman filter model.
+- **SMC - PoisLogN.R** (Model 2 - Poisson-Lognormal case): Implements a particle filter with a Poisson process for births and a log-normal observation model.
+
+- **BF-Coded.R** (Model 3): Implements a hard-coded Bootstrap Filter for a non-linear state-space model.
+
+#### Within NimbleSMC Folder
+Nested inside `particle_filter`, the `NimbleSMC` folder contains scripts that utilize the NimbleSMC package for advanced SMC models:
+
+- **SMC - Bin.R** (Model 2 - Binomial-Binomial case): Simulates survival and birth events using binomial processes.
+
+- **SMC bin dynamic rate.R**: Showcases a dynamic birth and death rate model, highlighting issues with compilation due to stochasticity.
+
+- **SMC-Normal-phi/beta.R**: Establishes a vague prior and a normal model.
+
+- **SMC-Normal - sdo/sdp.R**: Employs exact birth and death data to estimate dynamic process and observation errors.
+
+- **SMC-Normal-Exact.R**: Utilizes exact birth and death data with a process equation identical to the Kalman filter model.
 
 ## Data Sources and Methods
-###Population Data
-The data encompasses national and subnational population estimates for the UK, including births, deaths, and migration figures. The Office for National Statistics (ONS), the National Records of Scotland (NRS), and the Northern Ireland Statistics and Research Agency (NISRA) have provided this comprehensive dataset.
+
+### Population Data
+The dataset includes national and subnational population estimates for the UK, incorporating birth, death, and migration statistics, provided by ONS, NRS, and NISRA.
 
 ### Migration Data
-Migration figures, an integral part of the state-space models, are derived from various sources and represent long-term migration data, as the UK does not have a population registration system.
-
-## Other Files
-- **.DS_Store & .Rhistory: These files are automatically generated by the macOS file system and the R software environment, respectively. They contain system-specific metadata and a log of commands executed in R.
+Migration data are derived from various sources to represent long-term migration figures, compensating for the UK's lack of a population registration system.
