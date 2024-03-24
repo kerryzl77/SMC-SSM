@@ -6,8 +6,10 @@ library(nimbleSMC)
 library(coda)
 
 
-Combined_Data <- read.csv('/Users/liuzikai/Desktop/Population Model/combined_Data.csv')
-Combined_Data <- Combined_Data[,-1]
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+setwd("..")
+data_path <- "../data/combined_Data_imm.csv"
+Combined_Data <- read.csv(data_path)
 
 deviation <- 0.015 * Combined_Data$Population[length(Combined_Data$Population) - 1]
 

@@ -84,3 +84,4 @@ plot(timeSeriesEstimates_df$Year, timeSeriesEstimates_df$Estimated_Population, t
      xlab = "Year", ylab = "Population", main = "Exact - Population Estimates vs Actual")
 # Add the actual population data as points
 points(Combined_Data$Year, Combined_Data$Population, col = "blue", pch = 16)
+
