@@ -1,5 +1,6 @@
 library(dplyr)
 library(readxl)
+library(patchwork)
 ################################################################################################################
 # Set working directory
 folder_path <- file.path(dirname(rstudioapi::getSourceEditorContext()$path), "/data/Data - England & Wales")
@@ -44,23 +45,23 @@ Combined_Data$Death_rate <- round(Combined_Data$Death_Count / Combined_Data$Popu
 head(Combined_Data)
 
 ################################################################################################################
-# Reproduce Figure 1 
-ggplot(data = Combined_Data, aes(x = Year)) +
+# Reproduce Figure 1
+p1 <- ggplot(data = Combined_Data, aes(x = Year)) +
   geom_line(aes(y = Birth_Count, color = "Births")) +  
   geom_line(aes(y = Death_Count, color = "Deaths")) +  
-  labs(x = "Year", y = "Count", color = "Event Type") +
-  scale_color_manual(values = c(Births = 'red', Deaths = 'blue')) +  
+  labs(x = "Year", y = "Count") +
+  scale_color_manual(values = c(Births = 'red', Deaths = 'blue'), guide = FALSE) +  
   ggtitle('Birth and Death Count 1838-2021') +
   theme_minimal()
 
-# Reproduce Figure 2
-ggplot(data = Combined_Data, aes(x = Year)) +
+p2 <- ggplot(data = Combined_Data, aes(x = Year)) +
   geom_line(aes(y = Birth_rate, color = "Births")) +  
   geom_line(aes(y = Death_rate, color = "Deaths")) +  
-  labs(x = "Year", y = "Rate %", color = "Event Type") +
+  labs(x = "Year", y = "Rate %") +
   scale_color_manual(values = c(Births = 'red', Deaths = 'blue')) +  
   ggtitle('Birth and Death Rate 1838-2021') +
   theme_minimal()
+p1 + p2
 
 # Reproduce Figure 3
 actual_growth <- c(NA, diff(Combined_Data$Population)) # YOY actual population change
