@@ -7,11 +7,11 @@ setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 data_path <- "../data/combined_Data_imm.csv"
 data <- read.csv(data_path)
 
-sdp <- sqrt(1.6e11) # process error set to the optimization result for kalman filter
-
 bayesian_particle_filter_adjusted <- function(data, num_particles = 10000, birth_rate_prior = c(0, 0.1), death_rate_prior = c(0, 0.1), thresh = 0.8) {
   
-  # Initialize particles
+  set.seed(4599) 
+  overall_log_likelihood <- 0 
+  
   birth_rate_particles  <- runif(num_particles, birth_rate_prior[1], birth_rate_prior[2])  
   death_rate_particles <- runif(num_particles, death_rate_prior[1], death_rate_prior[2])
   
@@ -19,29 +19,41 @@ bayesian_particle_filter_adjusted <- function(data, num_particles = 10000, birth
   
   estimated_parameters_and_population <- data.frame()
   
+  estimated_birth_rate <-  data$Birth_rate[1]
+  estimated_death_rate <- data$Death_rate[1]
+  
+  final_birth_rate_particles <- NULL
+  final_death_rate_particles <- NULL
+  final_estimated_population <- NULL 
+  
   for (year in 2:nrow(data)) {
     prev_population <- data[year - 1, 'Population']
     observed_population <- data[year, 'Population']
     
     sdo <- sqrt(0.03 * prev_population) # Standard Deviation of Observation each Year
-
-    # Simulate process model with changes:
+    
+    # Sample around the estimates from the previous year
+    birth_rate_particles <- pmax(rnorm(num_particles, mean = estimated_birth_rate, sd = 0.01), 0)
+    death_rate_particles <- pmax(rnorm(num_particles, mean = estimated_death_rate, sd = 0.01), 0)
+    
+    # Simulate process model with changes:x
     died <- rbinom(num_particles, prev_population, death_rate_particles)  # Binomial death
     survived <- prev_population - died                                   # Survivors
     births <- rpois(num_particles, lambda = survived * birth_rate_particles) # Poisson birth
     estimated_population <- survived + births + data[year, "Immigration_Count"] 
     
     # Add normal variation for process error
-    estimated_population <- estimated_population + rnorm(num_particles, 0, sdp)
+    estimated_population <- estimated_population
     
     # Update weights
-    weights <- weights * dlnorm(observed_population, meanlog = log(estimated_population), sdlog = log((sdo)), log = FALSE)
-
-    weights <- weights + 1e-300
-    weights <- weights / sum(weights)
+    unnormalized_weights <- weights * dlnorm(observed_population, meanlog = log(estimated_population), sdlog = log((sdo)), log = FALSE)
+    
+    overall_log_likelihood <- overall_log_likelihood + log(sum((unnormalized_weights))/num_particles)
+    
+    weights <- unnormalized_weights / sum(unnormalized_weights)
     
     # Resample particles
-    ess <- sum(weights^2) * num_particles # Calculate Effective Sample Size
+    ess <- 1 / (sum(weights^2))
     if (ess < num_particles * thresh) { # Resample if ESS below threshold
       indices <- sample(1:num_particles, size = num_particles, replace = TRUE, prob = weights)
       birth_rate_particles <- birth_rate_particles[indices]
@@ -57,6 +69,9 @@ bayesian_particle_filter_adjusted <- function(data, num_particles = 10000, birth
     lower_CI <- quantile(estimated_population, probs = 0.025) 
     upper_CI <- quantile(estimated_population, probs = 0.975) 
     
+    # Print unique particle counts
+    cat("Year:", data[year, 'Year'], "- Unique Particles:", length(unique(estimated_population)))
+    
     estimated_parameters_and_population <- rbind(estimated_parameters_and_population, data.frame(
       Year = data[year, 'Year'],
       Estimated_birth_Rate = estimated_birth_rate,
@@ -65,18 +80,45 @@ bayesian_particle_filter_adjusted <- function(data, num_particles = 10000, birth
       Estimated_Population = mean(estimated_population),
       Lower_CI = lower_CI,
       Upper_CI = upper_CI,
-      ESS = ess 
+      ESS = ess,
+      Likelihood = overall_log_likelihood
     ))
     
   }
+  # Update final particles at each iteration
+  final_birth_rate_particles <- birth_rate_particles
+  final_death_rate_particles <- death_rate_particles
+  final_estimated_population <- estimated_population  
   
-  return(estimated_parameters_and_population)
-}
+  return(list(
+    Estimated_Parameters = estimated_parameters_and_population,
+    Final_Birth_Rate_Particles = final_birth_rate_particles,
+    Final_Death_Rate_Particles = final_death_rate_particles,
+    Final_Estimated_Population = final_estimated_population
+  ))}
 
-# Applying the adjusted Bayesian particle filter
-adjusted_bayesian_estimated_population_df <- bayesian_particle_filter_adjusted(data)
+# Run the Boostrap Model
+results <- bayesian_particle_filter_adjusted(data)
+final_birth_rates <- results$Final_Birth_Rate_Particles
+final_death_rates <- results$Final_Death_Rate_Particles
+final_estimated_populations <- results$Final_Estimated_Population
 
-# Plotting the results
+par(mfrow=c(1,3))
+hist(final_estimated_populations, main = 'Estimated Populations')
+abline(v = tail(data$Population, 1), col = "red", lwd = 2)
+
+hist(final_birth_rates, main = 'Estimated Birth rate')
+abline(v = tail(data$Birth_rate, 1), col = "red", lwd = 2)
+
+hist(final_death_rates, main = 'Estimated Death rate')
+abline(v = tail(data$Death_rate, 1), col = "red", lwd = 2)
+par(mfrow=c(1,1))
+
+adjusted_bayesian_estimated_population_df <- results$Estimated_Parameters
+cat("Log Likelihood:", tail(adjusted_bayesian_estimated_population_df$Likelihood,1), "\n")
+
+
+# Plot results
 ggplot(adjusted_bayesian_estimated_population_df, aes(x = Year)) +
   geom_line(aes(y = Observed_Population, color = "Actual Population")) +
   geom_line(aes(y = Estimated_Population, color = "Estimated Population")) +
@@ -95,9 +137,6 @@ ggplot(adjusted_bayesian_estimated_population_df, aes(x = Year)) +
   ggtitle('Estimated Birth & Death Rate') +
   scale_color_manual(values = c('Estimated Death Rate' = 'blue', 'Estimated Birth Rate' = 'red')) +
   theme_minimal()
-  
-plot(adjusted_bayesian_estimated_population_df$Estimated_birth_Rate, main = 'Estimated Birth Rate', ylab = 'Birth Rate %', xlab = 'Year', type = "l")
-plot(adjusted_bayesian_estimated_population_df$Estimated_Death_Rate, main = 'Estimated Death Rate', ylab = 'Death Rate %', xlab = 'Year', type = "l")
 
 ggplot(adjusted_bayesian_estimated_population_df, aes(x = Year, y = ESS)) +
   geom_line() + 
@@ -105,5 +144,11 @@ ggplot(adjusted_bayesian_estimated_population_df, aes(x = Year, y = ESS)) +
   xlab("Year") +
   ylab("ESS") + 
   theme_minimal()
+
+residuals <- adjusted_bayesian_estimated_population_df$Observed_Population - adjusted_bayesian_estimated_population_df$Estimated_Population
+adjusted_bayesian_estimated_population_df$Residuals <- residuals
+
+plot(adjusted_bayesian_estimated_population_df$Year, adjusted_bayesian_estimated_population_df$Residuals,  ylab = "One-Step Ahead Residuals", xlab = "Year")
+hist(residuals)
 
 

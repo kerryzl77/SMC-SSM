@@ -3,6 +3,7 @@ library(data.table)
 library(dplyr)
 library(nimbleSMC)
 library(coda)
+library(nimble)
 
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 data_path <- "../data/combined_Data_imm.csv"
@@ -14,32 +15,29 @@ stateSpaceModelCode <- nimbleCode({
   # Priors
   phi ~ dunif(0, 0.1)   # phi (death rate)
   beta ~ dunif(0, 0.1)  # beta (birth rate)
-
+  
   # Initial state
   S[1] ~ dpois(lambda = N_initial) # Initial population
   Y[1] ~ dlnorm(meanlog = log(S[1]), sdlog = log(sdo)) # Initial state observation
-
+  
   # Process model
   for (t in 2:T) {
     # Binomial death process
     d[t] ~ dbin(size = S[t-1], prob = phi)
-
+    
     # Surviving population after deaths but before births
     S_post_death[t] <- S[t-1] - d[t]
-
+    
     # Poisson birth process based on the updated surviving population
     b[t] ~ dpois(lambda = beta * S_post_death[t])
-
+    
     # Update total surviving population including new births
     S[t] ~ dpois(lambda = S_post_death[t] + b[t] + I[t])
-
+    
     # Observation process
     Y[t] ~ dlnorm(meanlog = log(S[t]), sdlog = log(sdo))
   }
 })
-
-
-
 
 data <- list(
   Y = Combined_Data$Population,  # Observed population data
@@ -74,6 +72,29 @@ compiledFilter <- compileNimble(bootstrapFilter)
 parNum <- 10000
 # Run bootstrap filter to estimate state sequences
 compiledFilter$run(parNum)
+
+###################################
+## create MCMC specification for the state space model
+stateSpaceMCMCconf <- configureMCMC(stateSpaceModel, nodes = NULL)
+
+## add a block pMCMC sampler for a, b, sigPN, and sigOE 
+stateSpaceMCMCconf$addSampler(target = c('phi', 'beta'),
+                              type = 'RW_PF_block', control = list(latents = 'S'))
+
+## build and compile pMCMC sampler
+stateSpaceMCMC <- buildMCMC(stateSpaceMCMCconf)
+compiledList <- compileNimble(stateSpaceModel, stateSpaceMCMC, resetFunctions = TRUE)
+
+compiledList$stateSpaceMCMC$run(5000)
+
+par(mfrow = c(2,1))
+posteriorSamps <- as.mcmc(as.matrix(compiledList$stateSpaceMCMC$mvSamples))
+traceplot(posteriorSamps[,'phi'], ylab = 'phi')
+traceplot(posteriorSamps[,'beta'], ylab = 'beta')
+hist(posteriorSamps[,'phi'])
+hist(posteriorSamps[,'beta'])
+par(mfrow = c(1,1))
+
 ESS <- compiledFilter$returnESS()
 
 # Extract equally weighted posterior samples of state variables
@@ -86,10 +107,10 @@ upperCI <- apply(posteriorSamples, 2, quantile, probs = 0.975)
 # Add a Year column to timeSeriesEstimates that corresponds to the years in Population_Data
 years = Combined_Data$Year  # assuming the years in Population_Data align with the indices of timeSeriesEstimates
 timeSeriesEstimates_df <- data.frame(
-    Year = years,
-    Estimated_Population = timeSeriesEstimates,
-    Lower_CI = lowerCI,
-    Upper_CI = upperCI
+  Year = years,
+  Estimated_Population = timeSeriesEstimates,
+  Lower_CI = lowerCI,
+  Upper_CI = upperCI
 )
 
 ggplot(timeSeriesEstimates_df, aes(x = Year, y = Estimated_Population)) +
@@ -106,5 +127,14 @@ uniqueParticleCounts <- apply(posteriorSamples, 2, function(x) length(unique(x))
 plot(ESS)
 plot(uniqueParticleCounts)
 hist(posteriorSamples[,183])
+abline(v = tail(Combined_Data$Population, 1), col = "red", lwd = 2)
+# 59660524 not in the region  
+
+# Calculate residuals as the difference between observed and estimated populations
+residuals <- Combined_Data$Population - timeSeriesEstimates_df$Estimated_Population
+timeSeriesEstimates_df$Residuals <- residuals
+
+plot(timeSeriesEstimates_df$Year, timeSeriesEstimates_df$Residuals,  ylab = "One-Step Ahead Residuals", xlab = "Year")
+hist(residuals)
 
 
