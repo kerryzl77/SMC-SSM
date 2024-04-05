@@ -17,7 +17,7 @@ normalModelCode <- nimbleCode({
   S[1] ~ dnorm(Population_initial, sd = 100000)
   # Process Equation using exact phi and beta
   for (t in 2:T) {
-    S[t] ~ dnorm((S[t-1] - death[t-1] + birth[t-1]), sd = sqrt(S[t-1]))
+    S[t] ~ dnorm((S[t-1] - death[t-1] + birth[t-1]+ immigration[t-1]), sd = sqrt(S[t-1]))
   }
   # Measurement Equation 
   for (t in 1:T) {
@@ -29,7 +29,8 @@ normalModelCode <- nimbleCode({
 data <- list(
   y = Combined_Data$Population,
   death = Combined_Data$Death_Count,
-  birth = Combined_Data$Birth_Count
+  birth = Combined_Data$Birth_Count,
+  immigration = Combined_Data$Immigration_Count
 )
 constants <- list(T = nrow(Combined_Data))
 

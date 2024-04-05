@@ -138,17 +138,18 @@ ggplot(adjusted_bayesian_estimated_population_df, aes(x = Year)) +
   scale_color_manual(values = c('Estimated Death Rate' = 'blue', 'Estimated Birth Rate' = 'red')) +
   theme_minimal()
 
-ggplot(adjusted_bayesian_estimated_population_df, aes(x = Year, y = ESS)) +
-  geom_line() + 
-  ggtitle("Evolution of Effective Sample Size (ESS)") +
-  xlab("Year") +
-  ylab("ESS") + 
-  theme_minimal()
+# ggplot(adjusted_bayesian_estimated_population_df, aes(x = Year, y = ESS)) +
+#   geom_line() + 
+#   ggtitle("Evolution of Effective Sample Size (ESS)") +
+#   xlab("Year") +
+#   ylab("ESS") + 
+#   theme_minimal()
 
 residuals <- adjusted_bayesian_estimated_population_df$Observed_Population - adjusted_bayesian_estimated_population_df$Estimated_Population
 adjusted_bayesian_estimated_population_df$Residuals <- residuals
 
-plot(adjusted_bayesian_estimated_population_df$Year, adjusted_bayesian_estimated_population_df$Residuals,  ylab = "One-Step Ahead Residuals", xlab = "Year")
-hist(residuals)
+plot(adjusted_bayesian_estimated_population_df$Year, adjusted_bayesian_estimated_population_df$Residuals,  ylab = "Count", xlab = "Year",
+     type = 'l', main = "One-Step-Ahead Predictive Residuals")
+# hist(residuals)
 
 

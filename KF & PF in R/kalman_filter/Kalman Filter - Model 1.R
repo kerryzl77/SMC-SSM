@@ -86,6 +86,19 @@ run_kalman_and_plot <- function(a0, P0, dt, ct, Tt, Zt, HHt, GGt, yt, years, dat
   # Combine with the true population data
   Combined_Plot_Data <- left_join(data, kf_df, by = "Year")
   
+  # Assuming `kf` is your fitted model object from the `fkf` function
+  log_likelihood <- kf$logLik
+  
+  # Calculate k, the number of parameters estimated by your model
+  # This is a placeholder; you need to replace it with the actual number of parameters
+  k <- length(a0) + length(P0) + length(dt) + length(ct) + length(Tt) + length(Zt) + length(HHt) + length(GGt)
+  
+  # Calculate AIC
+  AIC <- 2*k - 2*log_likelihood
+  
+  print(paste("AIC:", AIC))
+  
+  
   # Plotting with Confidence Interval
   ggplot() +
     geom_point(data = Combined_Plot_Data, aes(x = Year, y = Population), color = "blue", size = 2) +
@@ -93,6 +106,17 @@ run_kalman_and_plot <- function(a0, P0, dt, ct, Tt, Zt, HHt, GGt, yt, years, dat
     geom_ribbon(data = Combined_Plot_Data, aes(x = Year, ymin = ci_lower, ymax = ci_upper), alpha = 0.5, fill = "grey") +
     theme_minimal()+
     labs(title = plot_title) # Adding title to the plot
+  
+  # # Calculate and Standardize the residuals
+  # Combined_Plot_Data$residuals <- Combined_Plot_Data$Population - Combined_Plot_Data$Estimated_Population
+  # 
+  # standard_deviation <- sd(Combined_Plot_Data$residuals, na.rm = TRUE)
+  # Combined_Plot_Data$standardized_residuals <- Combined_Plot_Data$residuals / standard_deviation
+  # ggplot(Combined_Plot_Data, aes(x = standardized_residuals)) +
+  #   geom_histogram(aes(y = ..density..), binwidth = .1, fill = "blue", color = "black") +
+  #   stat_function(fun = dnorm, args = list(mean = 0, sd = 1), color = "red", size = 1) +
+  #   labs(title = "Distribution of Standardized Observation Errors", x = "Standardized Residuals", y = "Density") +
+  #   theme_minimal()
   
 }
 

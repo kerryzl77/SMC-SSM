@@ -125,8 +125,8 @@ ggplot(timeSeriesEstimates_df, aes(x = Year, y = Estimated_Population)) +
 
 uniqueParticleCounts <- apply(posteriorSamples, 2, function(x) length(unique(x)))
 plot(ESS)
-plot(uniqueParticleCounts)
-hist(posteriorSamples[,183])
+plot(uniqueParticleCounts, main = 'Unique Particles over Iterations', ylab = 'Count', xlab = 'Index')
+hist(posteriorSamples[,183], main = 'Posterior Distribution of 2021 Population Estimate', xlab = 'Count')
 abline(v = tail(Combined_Data$Population, 1), col = "red", lwd = 2)
 # 59660524 not in the region  
 

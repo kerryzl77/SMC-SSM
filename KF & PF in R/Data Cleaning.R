@@ -1,6 +1,7 @@
 library(dplyr)
 library(readxl)
 library(patchwork)
+library(ggplot2)
 ################################################################################################################
 # Set working directory
 folder_path <- file.path(dirname(rstudioapi::getSourceEditorContext()$path), "/data/Data - England & Wales")
@@ -74,5 +75,5 @@ Population_Growth_Data <- data.frame(
   Immigrant_Gap = immigrant_gap
 )
 Population_Growth_Data <- Population_Growth_Data[-1, ]
-plot(Population_Growth_Data$Year, Population_Growth_Data$Immigrant_Gap, type = "l", main = "Yearly Immigration Gap", xlab = "Year", ylab = "Immigration Gap")
+plot(Population_Growth_Data$Year, Population_Growth_Data$Immigrant_Gap, type = "l", main = "Yearly Net Migration Estimate", xlab = "Year", ylab = "Immigration Gap")
 
